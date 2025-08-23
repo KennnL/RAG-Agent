@@ -71,6 +71,21 @@ def main():
                             st.success(f"✓ Loaded {result['records']} records")
                             st.session_state.data_loaded = True
                             
+                            # 立即顯示載入的資料
+                            st.subheader("📋 Loaded Data Preview")
+                            try:
+                                all_returns = safe_handle_request("query")
+                                if all_returns is not None and isinstance(all_returns, pd.DataFrame):
+                                    if not all_returns.empty:
+                                        st.dataframe(all_returns.head(10), use_container_width=True)
+                                        st.info(f"💡 Showing first 10 of {len(all_returns)} records. Go to 'View Records' tab to see full data.")
+                                    else:
+                                        st.warning("Data loaded but no records found in database")
+                                else:
+                                    st.error("Failed to retrieve data from database")
+                            except Exception as e:
+                                st.error(f"Error displaying data: {str(e)}")
+                            
                             # 清理臨時檔案
                             try:
                                 os.remove(temp_file_path)
@@ -99,6 +114,21 @@ def main():
                     if result and result.get('success'):
                         st.success(f"✓ Loaded {result['records']} sample records")
                         st.session_state.data_loaded = True
+                        
+                        # 立即顯示載入的資料
+                        st.subheader("📋 Loaded Data Preview")
+                        try:
+                            all_returns = safe_handle_request("query")
+                            if all_returns is not None and isinstance(all_returns, pd.DataFrame):
+                                if not all_returns.empty:
+                                    st.dataframe(all_returns.head(10), use_container_width=True)
+                                    st.info(f"💡 Showing first 10 of {len(all_returns)} records. Go to 'View Records' tab to see full data.")
+                                else:
+                                    st.warning("Data loaded but no records found in database")
+                            else:
+                                st.error("Failed to retrieve data from database")
+                        except Exception as e:
+                            st.error(f"Error displaying data: {str(e)}")
                     else:
                         error_msg = result.get('error', 'Unknown error') if result else 'System error'
                         st.error(f"Failed to load sample data: {error_msg}")
