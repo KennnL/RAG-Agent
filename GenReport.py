@@ -5,7 +5,7 @@ class ReportAgent:
     report agent
     """
     def analyze_data(self, data):
-        if not data:
+        if data is None or (hasattr(data, 'empty') and data.empty):
             return {}
         
         df = pd.DataFrame(data)
@@ -52,7 +52,7 @@ class ReportAgent:
         }
     
     def create_report(self, data, output_file="report.xlsx"):
-        if not data:
+        if data is None or (hasattr(data, 'empty') and data.empty):
             return {"Error": "沒有資料"}
         
         analysis = self.analyze_data(data)
@@ -97,7 +97,7 @@ class ReportAgent:
                 findings_df = pd.DataFrame(findings, columns=['Findings'])
                 findings_df.to_excel(writer, sheet_name='Findings', index=False)
             
-            print(f"報告已生成: {output_file}")
+
             
             # Summary
             return {
