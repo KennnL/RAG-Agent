@@ -97,8 +97,6 @@ class ReportAgent:
                 findings_df = pd.DataFrame(findings, columns=['Findings'])
                 findings_df.to_excel(writer, sheet_name='Findings', index=False)
             
-
-            
             # Summary
             return {
                 "success": True,

@@ -23,7 +23,7 @@ class RetrievalAgent(LoadDB):
         
         analyzed_data = {}
         
-        # order_id - 更精確的匹配
+        # order_id
         order_patterns = [
             r'order[_\s]*id[:\s]*(\d+)',  # order_id: 123
             r'order[:\s]*(\d+)',          # order: 123
@@ -41,7 +41,7 @@ class RetrievalAgent(LoadDB):
         if 'order_id' in available_columns:
             analyzed_data['order_id'] = order_id if order_id else None
         
-        # product_name - 擴展產品列表
+        # product_name
         products = ["laptop", "phone", "tablet", "watch", "headphones", "camera", "speaker", "computer", "monitor", "keyboard", "mouse"]
         for p in products:
             if p in text.lower():
@@ -51,7 +51,7 @@ class RetrievalAgent(LoadDB):
                     analyzed_data['product'] = p.capitalize()
                 break
         
-        # return_reason - 根據實際數據擴展
+        # return_reason
         if 'return_reason' in available_columns:
             reason = None
             text_lower = text.lower()
@@ -95,7 +95,7 @@ class RetrievalAgent(LoadDB):
         print(f" 新一筆退貨記錄: {data}")
         
         if not data:
-            return {"Error": "無法解析輸入"}
+            return {"Error": "無法分析輸入"}
         
         # INSERT statement
         columns = list(data.keys())
@@ -111,7 +111,7 @@ class RetrievalAgent(LoadDB):
             return self.get_all_returns()
 
         except Exception as e:
-            print(f"   ✗ 插入資料時發生錯誤: {e}")
+            print(f"Error inserting data: {e}")
             return {"Error": str(e)}
     
     def get_all_returns(self):
