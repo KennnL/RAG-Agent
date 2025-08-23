@@ -71,6 +71,18 @@ def main():
                             st.success(f"✓ Loaded {result['records']} records")
                             st.session_state.data_loaded = True
                             
+                            # 顯示載入的資料
+                            st.subheader("📋 Loaded Data Preview")
+                            try:
+                                all_returns = safe_handle_request("query")
+                                if isinstance(all_returns, pd.DataFrame) and not all_returns.empty:
+                                    st.dataframe(all_returns, use_container_width=True)
+                                    st.info("💡 Go to 'View Records' tab to see full data and statistics")
+                                else:
+                                    st.warning("Data loaded but no records found")
+                            except Exception as e:
+                                st.error(f"Error displaying data: {str(e)}")
+                            
                             # 清理臨時檔案
                             try:
                                 os.remove(temp_file_path)
@@ -88,24 +100,29 @@ def main():
         if st.button("Use Sample Data"):
             try:
                 with st.spinner("Loading sample data..."):
-                    # 建立範例 CSV
-                    sample_data = {
-                        'order_id': [1001, 1002, 1003, 1004, 1005],
-                        'product': ['Laptop', 'Phone', 'Tablet', 'Watch', 'Headphones'],
-                        'category': ['Electronics', 'Electronics', 'Electronics', 'Accessories', 'Audio'],
-                        'date': ['2024-01-01', '2024-01-02', '2024-01-03', '2024-01-04', '2024-01-05'],
-                        'return_reason': ['Defective', 'Wrong Item Shipped', 'Damaged on Arrival', 'Changed Mind', 'Performance Issues'],
-                        'store_name': ['Store A', 'Store B', 'Store A', 'Store C', 'Store B'],
-                        'cost': [1299.99, 899.99, 599.99, 299.99, 199.99]
-                    }
-                    df = pd.DataFrame(sample_data)
-                    sample_file = 'sample_data.csv'
-                    df.to_csv(sample_file, index=False)
+                    # 使用現有的 sample.csv 檔案
+                    sample_file = 'sample.csv'
+                    
+                    if not os.path.exists(sample_file):
+                        st.error(f"Sample file not found: {sample_file}")
+                        return
                     
                     result = safe_handle_request("load_csv", sample_file)
                     if result and result.get('success'):
                         st.success(f"✓ Loaded {result['records']} sample records")
                         st.session_state.data_loaded = True
+                        
+                        # 顯示載入的資料
+                        st.subheader("📋 Loaded Data Preview")
+                        try:
+                            all_returns = safe_handle_request("query")
+                            if isinstance(all_returns, pd.DataFrame) and not all_returns.empty:
+                                st.dataframe(all_returns, use_container_width=True)
+                                st.info("💡 Go to 'View Records' tab to see full data and statistics")
+                            else:
+                                st.warning("Data loaded but no records found")
+                        except Exception as e:
+                            st.error(f"Error displaying data: {str(e)}")
                     else:
                         error_msg = result.get('error', 'Unknown error') if result else 'System error'
                         st.error(f"Failed to load sample data: {error_msg}")
