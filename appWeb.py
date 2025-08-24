@@ -280,7 +280,7 @@ def main():
                             result = safe_handle_request("report", report_name)
                             
                             if result and result.get('success'):
-                                st.success(f"Successfully generated report: {report_name}")
+                                st.success(f"Successfully Generated Report: {report_name}")
                                 
                                 # 顯示摘要
                                 st.subheader("Report Summary")
