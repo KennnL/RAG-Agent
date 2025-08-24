@@ -109,13 +109,25 @@ def main():
         with st.expander("ℹ️ How to insert new return"):
             st.markdown("""
             **Input Rules & Examples:**
-            - Return order 1234 laptop defective
-            - Order 5678 phone wrong item shipped
-            - Tablet damaged on arrival, order id: 9012
+            **Must specify:**
+            - `product: Laptop` - product name
+            - `reason: Defective` - return reason  
+            - `category: Electronics` - product category
+            - `approved: Yes` - approval status (default: No)
             
-            **Supported Products:** laptop, phone, tablet, watch, headphones, camera, speaker
+            **Automatically identified:**
+            - `order: 1234` or `1234` - order id
+            - `cost: $128` or `$128` - cost
+            - `store: Brooklyn Center` or `at Brooklyn Center` - store name
+            - `date: 2025-01-18` or `2025-01-18` - date
             
-            **Return Reasons:** defective, wrong item, damaged, warranty claim, changed mind, etc.
+            **Complete Example:**
+            ```
+            order: 2100 product: Tablet reason: Missing Accessories cost: $277 store: Sunnyvale Town date: 2025-05-20
+            ```
+            ```
+            order: 1500 product: Tablet reason: defective category: Electronics approved: Yes cost: $277 store: Sunnyvale Town date: 2025-07-18
+            ```
             """)
         
         # 輸入區
@@ -124,7 +136,7 @@ def main():
         with col1:
             user_input = st.text_input(
                 "Describe the return (natural-language):",
-                placeholder="e.g., Return order 1500 Camera Missing Accessories Brooklyn Center",
+                placeholder="e.g., order: 2100 product: Tablet reason: Missing Accessories cost: $277 store: Sunnyvale Town",
                 key="user_input"
             )
         
@@ -220,7 +232,7 @@ def main():
                     col1, col2 = st.columns(2)
                     
                     with col1:
-                        st.subheader("Product Type")
+                        st.subheader("Product Category")
                         if 'product' in all_returns.columns:
                             product_counts = all_returns['product'].value_counts()
                             st.bar_chart(product_counts)

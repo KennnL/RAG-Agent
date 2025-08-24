@@ -43,10 +43,10 @@ class RetrievalAgent(LoadDB):
         
         # order_id
         order_patterns = [
-            r'order[_\s]*id[:\s]*(\d+)',  # order_id: 123
-            r'order[:\s]*(\d+)',          # order: 123
-            r'id[:\s]*(\d+)',             # id: 123
-            r'(\d{4,})'                   # 4位以上數字 (如 1100, 1099)
+            r'order[_\s]*id\s*:\s*(\d+)',  # order_id: 123, order_id:123
+            r'order\s*:\s*(\d+)',          # order: 123, order:123, order :123, order : 123
+            r'id\s*:\s*(\d+)',             # id: 123, id:123, id :123, id : 123
+            r'(\d{4,})'                    # 數字
         ]
         
         order_id = None
@@ -59,48 +59,144 @@ class RetrievalAgent(LoadDB):
         if 'order_id' in available_columns:
             analyzed_data['order_id'] = order_id if order_id else None
         
-        # product_name
-        products = ["laptop", "phone", "tablet", "watch", "headphones", "camera", "speaker", "computer", "monitor", "keyboard", "mouse"]
-        for p in products:
-            if p in text.lower():
-                if 'product_name' in available_columns:
-                    analyzed_data['product_name'] = p.capitalize()
-                elif 'product' in available_columns:
-                    analyzed_data['product'] = p.capitalize()
+        # product 
+        product_patterns = [
+            r'product\s*:\s*([A-Za-z\s]+?)(?:\s|$|,)',     # product: Laptop, product:Laptop, product :Laptop, product : Laptop
+        ]
+        
+        product_value = None
+        for pattern in product_patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                product_value = match.group(1).strip().title()  # 大小寫
                 break
         
-        # return_reason
+        if product_value:
+            if 'product_name' in available_columns:
+                analyzed_data['product_name'] = product_value
+            elif 'product' in available_columns:
+                analyzed_data['product'] = product_value
+        
+        # return_reason 
         if 'return_reason' in available_columns:
             reason = None
-            text_lower = text.lower()
             
-            # 根據實際數據中的原因進行匹配
-            if any(word in text_lower for word in ["defective", "broken", "faulty"]):
-                reason = "Defective"
-            elif any(word in text_lower for word in ["warranty", "warranty claim"]):
-                reason = "Warranty Claim"
-            elif any(word in text_lower for word in ["compatible", "compatibility", "not compatible"]):
-                reason = "Not Compatible"
-            elif any(word in text_lower for word in ["missing", "accessories", "missing accessories"]):
-                reason = "Missing Accessories"
-            elif any(word in text_lower for word in ["damaged", "arrival", "damaged on arrival"]):
-                reason = "Damaged on Arrival"
-            elif any(word in text_lower for word in ["wrong", "shipped", "wrong item"]):
-                reason = "Wrong Item Shipped"
-            elif any(word in text_lower for word in ["performance", "slow", "lag"]):
-                reason = "Performance Issues"
-            elif any(word in text_lower for word in ["battery", "battery issue"]):
-                reason = "Battery Issue"
-            elif any(word in text_lower for word in ["screen", "broken screen"]):
-                reason = "Broken Screen"
-            elif any(word in text_lower for word in ["changed mind", "change mind", "don't want"]):
-                reason = "Changed Mind"
+            # 優先使用模式匹配
+            reason_patterns = [
+                r'reason\s*:\s*([A-Za-z\s]+?)(?:\s|$|,)',      # reason: Defective, reason:Defective, reason :Defective, reason : Defective
+                r'because\s*:\s*([A-Za-z\s]+?)(?:\s|$|,)',     # because: defective, because:defective, because :defective, because : defective
+                r'return_reason\s*:\s*([A-Za-z\s]+?)(?:\s|$|,)', # return_reason: Missing Accessories, return_reason:Missing Accessories, return_reason :Missing Accessories, return_reason : Missing Accessories
+            ]
+            
+            for pattern in reason_patterns:
+                match = re.search(pattern, text, re.IGNORECASE)
+                if match:
+                    reason = match.group(1).strip().title()
+                    break
+            
+
             
             analyzed_data['return_reason'] = reason
         
-        # date
+        # date 
         if 'date' in available_columns:
-            analyzed_data['date'] = datetime.now().strftime("%Y-%m-%d")
+            date_patterns = [
+                r'date\s*:\s*(\d{4}-\d{2}-\d{2})', # date: 2025-01-03, date:2025-01-03, date :2025-01-03, date : 2025-01-03
+                r'date\s*:\s*(\d{2}/\d{2}/\d{4})', # date: 01/03/2025, date:01/03/2025, date :01/03/2025, date : 01/03/2025
+                r'(\d{4}-\d{2}-\d{2})',           # 2025-01-03
+                r'(\d{2}/\d{2}/\d{4})',           # 01/03/2025
+                r'(\d{1,2}/\d{1,2}/\d{4})',       # 1/3/2025
+            ]
+            
+            extracted_date = None
+            for pattern in date_patterns:
+                match = re.search(pattern, text, re.IGNORECASE)
+                if match:
+                    date_str = match.group(1)
+                    # 標準化日期格式為 YYYY-MM-DD
+                    if '/' in date_str:
+                        if len(date_str.split('/')[2]) == 4:  # MM/DD/YYYY
+                            month, day, year = date_str.split('/')
+                            extracted_date = f"{year}-{month.zfill(2)}-{day.zfill(2)}"
+                    else:
+                        extracted_date = date_str  # 已經是 YYYY-MM-DD 格式
+                    break
+            
+            analyzed_data['date'] = extracted_date if extracted_date else datetime.now().strftime("%Y-%m-%d")
+        
+        # cost 
+        if 'cost' in available_columns:
+            cost_patterns = [
+                r'cost\s*:\s*\$?(\d+\.?\d*)',       # cost: $128, cost:$128, cost :$128, cost : $128
+                r'price\s*:\s*\$?(\d+\.?\d*)',      # price: $128, price:$128, price :$128, price : $128
+                r'\$(\d+\.?\d*)',                   # $128
+                r'(\d+\.?\d*)\s*dollars?',          # 128 dollars
+            ]
+            
+            cost_value = None
+            for pattern in cost_patterns:
+                match = re.search(pattern, text, re.IGNORECASE)
+                if match:
+                    cost_value = float(match.group(1))
+                    break
+            
+            analyzed_data['cost'] = cost_value
+        
+        # store_name 
+        if 'store_name' in available_columns:
+            store_patterns = [
+                r'store\s*:\s*([A-Za-z\s]+?)(?:\s|$|,)',       # store: Brooklyn Center, store:Brooklyn Center, store :Brooklyn Center, store : Brooklyn Center
+                r'store_name\s*:\s*([A-Za-z\s]+?)(?:\s|$|,)',  # store_name: Sunnyvale Town, store_name:Sunnyvale Town, store_name :Sunnyvale Town, store_name : Sunnyvale Town
+                r'at\s+([A-Za-z\s]+?)(?:\s|$|,)',              # at Brooklyn Center
+                r'from\s+([A-Za-z\s]+?)(?:\s|$|,)',            # from Riverdale Outlet
+            ]
+            
+            store_value = None
+            for pattern in store_patterns:
+                match = re.search(pattern, text, re.IGNORECASE)
+                if match:
+                    store_value = match.group(1).strip().title()
+                    break
+            
+            analyzed_data['store_name'] = store_value
+        
+        # category 
+        if 'category' in available_columns:
+            category_patterns = [
+                r'category\s*:\s*([A-Za-z]+)',      # category: Electronics, category:Electronics, category :Electronics, category : Electronics
+            ]
+            
+            category_value = None
+            for pattern in category_patterns:
+                match = re.search(pattern, text, re.IGNORECASE)
+                if match:
+                    category_value = match.group(1).strip().title()
+                    break
+            
+            analyzed_data['category'] = category_value
+        
+        # approved_flag 
+        if 'approved_flag' in available_columns:
+            approval_patterns = [
+                r'approved\s*:\s*(yes|no|true|false)',     # approved: yes, approved:yes, approved :yes, approved : yes
+                r'status\s*:\s*(approved|rejected|pending)', # status: approved, status:approved, status :approved, status : approved
+                r'approved_flag\s*:\s*(yes|no)',           # approved_flag: yes, approved_flag:yes, approved_flag :yes, approved_flag : yes
+            ]
+            
+            approval_value = "No"  # 預設值
+            for pattern in approval_patterns:
+                match = re.search(pattern, text, re.IGNORECASE)
+                if match:
+                    status = match.group(1).lower()
+                    if status in ['yes', 'true', 'approved']:
+                        approval_value = "Yes"
+                    elif status in ['no', 'false', 'rejected']:
+                        approval_value = "No"
+                    elif status == 'pending':
+                        approval_value = "Pending"
+                    break
+            
+            analyzed_data['approved_flag'] = approval_value
         
         return analyzed_data
     
