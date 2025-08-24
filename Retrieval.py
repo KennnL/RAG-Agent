@@ -1,6 +1,7 @@
 import pandas as pd
 from datetime import datetime
 import re
+import sqlite3
 from LoadDB import LoadDB
 
 class RetrievalAgent(LoadDB):
@@ -15,6 +16,10 @@ class RetrievalAgent(LoadDB):
         """
         analyze natural language input
         """
+        # 確保資料庫連接存在
+        if not self.conn:
+            self.conn = sqlite3.connect(self.db_path)
+            
         # check which fields are available in the database
         cursor = self.conn.cursor()
         cursor.execute("PRAGMA table_info(returns)")
@@ -90,6 +95,10 @@ class RetrievalAgent(LoadDB):
         """
         insert new return record
         """
+        # 確保資料庫連接存在
+        if not self.conn:
+            self.conn = sqlite3.connect(self.db_path)
+        
         # analyze input
         data = self.analyze_input(text_input)
         print(f" 新一筆退貨記錄: {data}")
@@ -118,6 +127,10 @@ class RetrievalAgent(LoadDB):
         """
         get all return records
         """
+        # 確保資料庫連接存在
+        if not self.conn:
+            self.conn = sqlite3.connect(self.db_path)
+            
         cursor = self.conn.cursor()
         cursor.execute("PRAGMA table_info(returns)")
         columns_info = cursor.fetchall()

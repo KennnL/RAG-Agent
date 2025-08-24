@@ -13,11 +13,12 @@ class LoadDB:
         """
         Create a table in the database based on the DataFrame columns
         """
-        if self.table_created:
-            return
         # connect to the database
         if not self.conn:
             self.conn = sqlite3.connect(self.db_path)
+            
+        if self.table_created:
+            return
         
         columns = []
         columns.append("id INTEGER PRIMARY KEY AUTOINCREMENT")
