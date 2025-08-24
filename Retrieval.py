@@ -2,6 +2,7 @@ import pandas as pd
 from datetime import datetime
 import re
 import sqlite3
+import threading
 from LoadDB import LoadDB
 
 class RetrievalAgent(LoadDB):
@@ -11,17 +12,29 @@ class RetrievalAgent(LoadDB):
     def __init__(self):
         super().__init__()
         self.conn = None
+        self._local = threading.local()
+
+    def _get_connection(self):
+        """Get a thread-safe database connection"""
+        if not hasattr(self._local, 'conn') or self._local.conn is None:
+            self._local.conn = sqlite3.connect(self.db_path)
+        return self._local.conn
+    
+    def _refresh_connection(self):
+        """Refresh the thread-local connection to see latest data"""
+        if hasattr(self._local, 'conn') and self._local.conn is not None:
+            self._local.conn.close()
+            self._local.conn = None
 
     def analyze_input(self, text):
         """
         analyze natural language input
         """
-        # 確保資料庫連接存在
-        if not self.conn:
-            self.conn = sqlite3.connect(self.db_path)
+        # 使用線程安全的連接
+        conn = self._get_connection()
             
         # check which fields are available in the database
-        cursor = self.conn.cursor()
+        cursor = conn.cursor()
         cursor.execute("PRAGMA table_info(returns)")
         columns_info = cursor.fetchall()
         available_columns = [col[1] for col in columns_info]
@@ -95,9 +108,8 @@ class RetrievalAgent(LoadDB):
         """
         insert new return record
         """
-        # 確保資料庫連接存在
-        if not self.conn:
-            self.conn = sqlite3.connect(self.db_path)
+        # 使用線程安全的連接
+        conn = self._get_connection()
         
         # analyze input
         data = self.analyze_input(text_input)
@@ -114,9 +126,9 @@ class RetrievalAgent(LoadDB):
         sql = f"INSERT INTO returns ({', '.join(columns)}) VALUES ({', '.join(placeholders)})"
         
         try:
-            cursor = self.conn.cursor()
+            cursor = conn.cursor()
             cursor.execute(sql, values)
-            self.conn.commit()   
+            conn.commit()   
             return self.get_all_returns()
 
         except Exception as e:
@@ -127,11 +139,10 @@ class RetrievalAgent(LoadDB):
         """
         get all return records
         """
-        # 確保資料庫連接存在
-        if not self.conn:
-            self.conn = sqlite3.connect(self.db_path)
+        # 使用線程安全的連接
+        conn = self._get_connection()
             
-        cursor = self.conn.cursor()
+        cursor = conn.cursor()
         cursor.execute("PRAGMA table_info(returns)")
         columns_info = cursor.fetchall()
         column_names = [col[1] for col in columns_info if col[1] not in ['id', 'created_at']]

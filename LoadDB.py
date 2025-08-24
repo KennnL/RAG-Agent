@@ -77,6 +77,10 @@ class LoadDB:
             # Insert data
             df.to_sql('returns', self.conn, if_exists='append', index=False)
             
+            # Refresh thread-local connections to see new data
+            if hasattr(self, '_refresh_connection'):
+                self._refresh_connection()
+            
             print(f"Successfully wrote {len(df)} records to the database")
             
             return {"success": True, "records": len(df), "columns": list(df.columns)}
