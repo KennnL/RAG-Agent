@@ -2,10 +2,6 @@ import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime
-from Controller import Controller
-from LoadDB import LoadDB
-from Retrieval import RetrievalAgent
-from GenReport import ReportAgent
 
 # 頁面設定
 st.set_page_config(
@@ -21,6 +17,7 @@ if 'data_loaded' not in st.session_state:
 def create_controller():
     """Create a new controller instance for each request"""
     try:
+        from Controller import Controller
         return Controller()
     except Exception as e:
         st.error(f"Failed to create controller: {str(e)}")
