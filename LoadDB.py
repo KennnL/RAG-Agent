@@ -59,12 +59,13 @@ class LoadDB:
             # step 2: clean the column name first
             df.columns = [col.lower().replace(' ', '_').replace('-', '_') for col in df.columns]
             
-            # step 3: create a database table based on the cleaned columns
-            self.create_table(df)
-            
-            # step 4: write - replace existing data but preserve id column
+            # step 3: write - replace existing data but preserve id column
             # First, drop the table if it exists
             self.conn.execute("DROP TABLE IF EXISTS returns")
+            self.conn.commit()
+            
+            # Reset table_created flag
+            self.table_created = False
             
             # Create table with id column
             self.create_table(df)
