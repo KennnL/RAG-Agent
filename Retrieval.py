@@ -61,7 +61,7 @@ class RetrievalAgent(LoadDB):
         
         # product 
         product_patterns = [
-            r'product\s*:\s*([A-Za-z\s]+?)(?:\s|$|,)',     # product: Laptop, product:Laptop, product :Laptop, product : Laptop
+            r'product\s*:\s*([A-Za-z\s]+?)(?:\s+\w+\s*:|$)',     # product: Laptop, product:Laptop, product :Laptop, product : Laptop
         ]
         
         product_value = None
@@ -83,9 +83,9 @@ class RetrievalAgent(LoadDB):
             
             # 優先使用模式匹配
             reason_patterns = [
-                r'reason\s*:\s*([A-Za-z\s]+?)(?:\s|$|,)',      # reason: Defective, reason:Defective, reason :Defective, reason : Defective
-                r'because\s*:\s*([A-Za-z\s]+?)(?:\s|$|,)',     # because: defective, because:defective, because :defective, because : defective
-                r'return_reason\s*:\s*([A-Za-z\s]+?)(?:\s|$|,)', # return_reason: Missing Accessories, return_reason:Missing Accessories, return_reason :Missing Accessories, return_reason : Missing Accessories
+                r'reason\s*:\s*([A-Za-z\s]+?)(?:\s+\w+\s*:|$)',      # reason: Defective, reason:Defective, reason :Defective, reason : Defective
+                r'because\s*:\s*([A-Za-z\s]+?)(?:\s+\w+\s*:|$)',     # because: defective, because:defective, because :defective, because : defective
+                r'return_reason\s*:\s*([A-Za-z\s]+?)(?:\s+\w+\s*:|$)', # return_reason: Missing Accessories, return_reason:Missing Accessories, return_reason :Missing Accessories, return_reason : Missing Accessories
             ]
             
             for pattern in reason_patterns:
@@ -145,10 +145,10 @@ class RetrievalAgent(LoadDB):
         # store_name 
         if 'store_name' in available_columns:
             store_patterns = [
-                r'store\s*:\s*([A-Za-z\s]+?)(?:\s|$|,)',       # store: Brooklyn Center, store:Brooklyn Center, store :Brooklyn Center, store : Brooklyn Center
-                r'store_name\s*:\s*([A-Za-z\s]+?)(?:\s|$|,)',  # store_name: Sunnyvale Town, store_name:Sunnyvale Town, store_name :Sunnyvale Town, store_name : Sunnyvale Town
-                r'at\s+([A-Za-z\s]+?)(?:\s|$|,)',              # at Brooklyn Center
-                r'from\s+([A-Za-z\s]+?)(?:\s|$|,)',            # from Riverdale Outlet
+                r'store\s*:\s*([A-Za-z\s]+?)(?:\s+\w+\s*:|$)',       # store: Brooklyn Center, store:Brooklyn Center, store :Brooklyn Center, store : Brooklyn Center
+                r'store_name\s*:\s*([A-Za-z\s]+?)(?:\s+\w+\s*:|$)',  # store_name: Sunnyvale Town, store_name:Sunnyvale Town, store_name :Sunnyvale Town, store_name : Sunnyvale Town
+                r'at\s+([A-Za-z\s]+?)(?:\s+\w+\s*:|$)',              # at Brooklyn Center
+                r'from\s+([A-Za-z\s]+?)(?:\s+\w+\s*:|$)',            # from Riverdale Outlet
             ]
             
             store_value = None
@@ -163,7 +163,7 @@ class RetrievalAgent(LoadDB):
         # category 
         if 'category' in available_columns:
             category_patterns = [
-                r'category\s*:\s*([A-Za-z]+)',      # category: Electronics, category:Electronics, category :Electronics, category : Electronics
+                r'category\s*:\s*([A-Za-z]+)(?:\s+\w+\s*:|$)',      # category: Electronics, category:Electronics, category :Electronics, category : Electronics
             ]
             
             category_value = None
