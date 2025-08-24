@@ -136,7 +136,7 @@ class RetrievalAgent(LoadDB):
         columns_info = cursor.fetchall()
         column_names = [col[1] for col in columns_info if col[1] not in ['id', 'created_at']]
         
-        # select all records
+        # select all records - use id for ordering
         cursor.execute(f"SELECT {', '.join(column_names)} FROM returns ORDER BY id DESC")
         rows = cursor.fetchall()
         

@@ -62,8 +62,15 @@ class LoadDB:
             # step 3: create a database table based on the cleaned columns
             self.create_table(df)
             
-            # step 4: write - replace existing data
-            df.to_sql('returns', self.conn, if_exists='replace', index=False)
+            # step 4: write - replace existing data but preserve id column
+            # First, drop the table if it exists
+            self.conn.execute("DROP TABLE IF EXISTS returns")
+            
+            # Create table with id column
+            self.create_table(df)
+            
+            # Insert data
+            df.to_sql('returns', self.conn, if_exists='append', index=False)
             
             print(f"Successfully wrote {len(df)} records to the database")
             
