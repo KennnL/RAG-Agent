@@ -126,13 +126,8 @@ def main():
         col1, col2 = st.columns([3, 1])
         
         with col1:
-            # 初始化 user_input 在 session_state
-            if 'user_input' not in st.session_state:
-                st.session_state.user_input = ""
-            
             user_input = st.text_input(
                 "Describe the return (natural-language):",
-                value=st.session_state.user_input,
                 placeholder="e.g., Return order 1500 Camera Missing Accessories Brooklyn Center",
                 key="user_input"
             )
@@ -147,8 +142,7 @@ def main():
                         if isinstance(result, pd.DataFrame):
                             st.success("Record inserted successfully!")
                             st.write(f"Total records: {len(result)}")
-                            # clear input
-                            st.session_state.user_input = ""
+                            # clear input and rerun
                             st.rerun()
                         else:
                             error_msg = result.get('error', 'Unknown error') if result else 'System error'
