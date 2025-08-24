@@ -5,12 +5,11 @@ from datetime import datetime
 
 # 頁面設定
 st.set_page_config(
-    page_title="Returns & Warranty System",
-    page_icon="📦",
+    page_title="Returns & Warranty RAG System",
     layout="wide"
 )
 
-# 初始化 session state
+# session state
 if 'controller' not in st.session_state:
     try:
         from Controller import Controller
@@ -30,7 +29,7 @@ def safe_handle_request(action, data=None):
 
 def main():
     # title
-    st.title("📦 Returns & Warranty RAG System")
+    st.title("Returns & Warranty RAG System")
     st.markdown("2-Agent System, MCP-style")
     
     # data load
