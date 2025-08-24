@@ -142,11 +142,13 @@ def main():
                         if isinstance(result, pd.DataFrame):
                             st.success("Record inserted successfully!")
                             st.write(f"Total records: {len(result)}")
-                            # clear input and rerun
-                            st.rerun()
                         else:
-                            error_msg = result.get('error', 'Unknown error') if result else 'System error'
-                            st.error(f"Insert failed: {error_msg}")
+                            if result is None:
+                                st.error("Insert failed: System error - no response")
+                            elif isinstance(result, dict) and 'Error' in result:
+                                st.error(f"Insert failed: {result['Error']}")
+                            else:
+                                st.error(f"Insert failed: {result}")
                 else:
                     st.warning("Please enter a return description")
         
