@@ -15,18 +15,27 @@ st.set_page_config(
 )
 
 # 初始化 session state
-if 'controller' not in st.session_state:
-    try:
-        st.session_state.controller = Controller()
-        st.session_state.data_loaded = False
-    except Exception as e:
-        st.error(f"Failed to initialize system: {str(e)}")
-        st.stop()
+if 'data_loaded' not in st.session_state:
+    st.session_state.data_loaded = False
 
-def safe_handle_request(controller, action, data=None):
+def create_controller():
+    """Create a new controller instance for each request"""
+    try:
+        return Controller()
+    except Exception as e:
+        st.error(f"Failed to create controller: {str(e)}")
+        return None
+
+def safe_handle_request(action, data=None):
     """Safely handle controller requests with error handling"""
     try:
-        return controller.handle_request(action, data)
+        controller = create_controller()
+        if controller is None:
+            return None
+            
+        result = controller.handle_request(action, data)
+        controller.close()  # Always close the connection
+        return result
     except Exception as e:
         st.error(f"System error: {str(e)}")
         return None
@@ -56,7 +65,7 @@ def main():
                 
                 if st.button("Load Data", type="primary"):
                     with st.spinner("Loading data..."):
-                        result = safe_handle_request(st.session_state.controller, "load_csv", temp_file_path)
+                        result = safe_handle_request("load_csv", temp_file_path)
                         
                         if result and result.get('success'):
                             st.success(f"✓ Loaded {result['records']} records")
@@ -86,7 +95,7 @@ def main():
                         st.error(f"Sample file not found: {sample_file}")
                         return
                     
-                    result = safe_handle_request(st.session_state.controller, "load_csv", sample_file)
+                    result = safe_handle_request("load_csv", sample_file)
                     if result and result.get('success'):
                         st.success(f"✓ Loaded {result['records']} sample records")
                         st.session_state.data_loaded = True
@@ -137,7 +146,7 @@ def main():
             if st.button("Insert", type="primary", disabled=not st.session_state.data_loaded):
                 if user_input:
                     with st.spinner("Processing..."):
-                        result = safe_handle_request(st.session_state.controller, "insert", user_input)
+                        result = safe_handle_request("insert", user_input)
                         
                         if isinstance(result, pd.DataFrame):
                             st.success("Record inserted successfully!")
@@ -156,7 +165,7 @@ def main():
         if st.session_state.data_loaded:
             st.subheader("Recent Returns")
             try:
-                all_returns = safe_handle_request(st.session_state.controller, "query")
+                all_returns = safe_handle_request("query")
                 if isinstance(all_returns, pd.DataFrame) and not all_returns.empty:
                     # show recent 5 records
                     st.dataframe(all_returns.head(), use_container_width=True)
@@ -174,7 +183,7 @@ def main():
                 st.rerun()
                 
             try:
-                all_returns = safe_handle_request(st.session_state.controller, "query")
+                all_returns = safe_handle_request("query")
                 
                 if isinstance(all_returns, pd.DataFrame) and not all_returns.empty:
                     # 顯示統計
@@ -216,7 +225,7 @@ def main():
         
         if st.session_state.data_loaded:
             try:
-                all_returns = safe_handle_request(st.session_state.controller, "query")
+                all_returns = safe_handle_request("query")
                 
                 if isinstance(all_returns, pd.DataFrame) and not all_returns.empty:
                     # basic statistics
@@ -266,7 +275,7 @@ def main():
                 if st.button("Generate Report", type="primary"):
                     with st.spinner("Generating report..."):
                         try:
-                            result = safe_handle_request(st.session_state.controller, "report", report_name)
+                            result = safe_handle_request("report", report_name)
                             
                             if result and result.get('success'):
                                 st.success(f"✓ Report generated: {report_name}")

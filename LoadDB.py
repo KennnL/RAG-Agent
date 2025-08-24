@@ -61,8 +61,8 @@ class LoadDB:
             # step 3: create a database table based on the cleaned columns
             self.create_table(df)
             
-            # step 4: write
-            df.to_sql('returns', self.conn, if_exists='append', index=False)
+            # step 4: write - replace existing data
+            df.to_sql('returns', self.conn, if_exists='replace', index=False)
             
             print(f"Successfully wrote {len(df)} records to the database")
             
