@@ -28,9 +28,11 @@ def safe_handle_request(action, data=None):
     try:
         controller = create_controller()
         if controller is None:
+            st.error("Failed to create controller")
             return None
             
         result = controller.handle_request(action, data)
+        st.write(f"Debug - Controller result: {result}")
         controller.close()  # Always close the connection
         return result
     except Exception as e:
@@ -163,6 +165,9 @@ def main():
             st.subheader("Recent Returns")
             try:
                 all_returns = safe_handle_request("query")
+                st.write(f"Debug - Query result type: {type(all_returns)}")
+                if all_returns is not None:
+                    st.write(f"Debug - Query result: {all_returns}")
                 if isinstance(all_returns, pd.DataFrame) and not all_returns.empty:
                     # show recent 5 records
                     st.dataframe(all_returns.head(), use_container_width=True)
