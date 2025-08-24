@@ -55,7 +55,7 @@ def main():
                         result = safe_handle_request("load_csv", temp_file_path)
                         
                         if result and result.get('success'):
-                            st.success(f"✓ Loaded {result['records']} records")
+                            st.success(f"Loaded {result['records']} records")
                             st.session_state.data_loaded = True
                             
                             # clean up 
@@ -84,7 +84,7 @@ def main():
                     
                     result = safe_handle_request("load_csv", sample_file)
                     if result and result.get('success'):
-                        st.success(f"✓ Loaded {result['records']} sample records")
+                        st.success(f"Loaded {result['records']} sample records")
                         st.session_state.data_loaded = True
                     else:
                         error_msg = result.get('error', 'Unknown error') if result else 'System error'
@@ -126,7 +126,7 @@ def main():
             order: 2100 product: Tablet reason: Missing Accessories cost: $277 store: Sunnyvale Town date: 2025-05-20
             ```
             ```
-            order: 1500 product: Tablet reason: defective category: Electronics approved: Yes cost: $277 store: Sunnyvale Town date: 2025-07-18
+            order: 1500 product: Tablet reason: defective category: Electronics approved: Yes cost: $300 store: Brooklyn Center date: 2025-07-18
             ```
             """)
         
@@ -280,7 +280,7 @@ def main():
                             result = safe_handle_request("report", report_name)
                             
                             if result and result.get('success'):
-                                st.success(f"✓ Report generated: {report_name}")
+                                st.success(f"Successfully! {report_name}")
                                 
                                 # 顯示摘要
                                 st.subheader("Report Summary")
