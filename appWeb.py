@@ -46,7 +46,7 @@ def main():
         if uploaded_file is not None:
             try:
                 # save uploaded file
-                temp_file_path = f"temp_upload_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+                temp_file_path = f"temp_upload_{datetime.now().strftime('%Y%m%d')}.csv"
                 with open(temp_file_path, "wb") as f:
                     f.write(uploaded_file.getbuffer())
                 
@@ -255,10 +255,11 @@ def main():
             with col1:
                 report_name = st.text_input(
                     "Report filename:",
-                    value=f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+                    value=f"summary_report_{datetime.now().strftime('%Y%m%d')}.xlsx"
                 )
             
             with col2:
+                st.write("")  
                 if st.button("Generate Report", type="primary"):
                     with st.spinner("Generating report..."):
                         try:
