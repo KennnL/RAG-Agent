@@ -126,12 +126,19 @@ def main():
         col1, col2 = st.columns([3, 1])
         
         with col1:
+            # 初始化 user_input 在 session_state
+            if 'user_input' not in st.session_state:
+                st.session_state.user_input = ""
+            
             user_input = st.text_input(
                 "Describe the return (natural-language):",
-                placeholder="e.g., Return order 1500 Camera Missing Accessories Brooklyn Center"
+                value=st.session_state.user_input,
+                placeholder="e.g., Return order 1500 Camera Missing Accessories Brooklyn Center",
+                key="user_input"
             )
         
         with col2:
+            st.write("")  
             if st.button("Insert", type="primary", disabled=not st.session_state.data_loaded):
                 if user_input:
                     with st.spinner("Processing..."):
@@ -139,7 +146,10 @@ def main():
                         
                         if isinstance(result, pd.DataFrame):
                             st.success("Record inserted successfully!")
-                            st.write(f"Total records now: {len(result)}")
+                            st.write(f"Total records: {len(result)}")
+                            # clear input
+                            st.session_state.user_input = ""
+                            st.rerun()
                         else:
                             error_msg = result.get('error', 'Unknown error') if result else 'System error'
                             st.error(f"Insert failed: {error_msg}")
@@ -217,7 +227,7 @@ def main():
                     col1, col2 = st.columns(2)
                     
                     with col1:
-                        st.subheader("Product Distribution")
+                        st.subheader("Product Type")
                         if 'product' in all_returns.columns:
                             product_counts = all_returns['product'].value_counts()
                             st.bar_chart(product_counts)
