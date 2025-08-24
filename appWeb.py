@@ -130,6 +130,7 @@ def main():
         
         with col2:
             st.write("")  
+            st.write("")  
             if st.button("Insert", type="primary", disabled=not st.session_state.data_loaded):
                 if user_input:
                     with st.spinner("Processing..."):
@@ -259,6 +260,7 @@ def main():
                 )
             
             with col2:
+                st.write("")
                 st.write("")  
                 if st.button("Generate Report", type="primary"):
                     with st.spinner("Generating report..."):
