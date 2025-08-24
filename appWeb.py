@@ -32,11 +32,11 @@ def safe_handle_request(controller, action, data=None):
         return None
 
 def main():
-    # 標題
+    # title
     st.title("📦 Returns & Warranty RAG System")
-    st.markdown("2-Agent System for Product Returns Management")
+    st.markdown("2-Agent System, MCP-style")
     
-    # 側邊欄 - 資料載入
+    # data load
     with st.sidebar:
         st.header("📂 Data Management")
         
@@ -49,7 +49,7 @@ def main():
         
         if uploaded_file is not None:
             try:
-                # 儲存上傳的檔案
+                # save uploaded file
                 temp_file_path = f"temp_upload_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
                 with open(temp_file_path, "wb") as f:
                     f.write(uploaded_file.getbuffer())
@@ -62,7 +62,7 @@ def main():
                             st.success(f"✓ Loaded {result['records']} records")
                             st.session_state.data_loaded = True
                             
-                            # 清理臨時檔案
+                            # clean up 
                             try:
                                 os.remove(temp_file_path)
                             except:
@@ -74,12 +74,12 @@ def main():
             except Exception as e:
                 st.error(f"Error processing uploaded file: {str(e)}")
         
-        # 或使用範例資料
+        # use sample data
         st.divider()
         if st.button("Use Sample Data"):
             try:
                 with st.spinner("Loading sample data..."):
-                    # 使用現有的 sample.csv 檔案
+                    # use existing sample.csv
                     sample_file = 'sample.csv'
                     
                     if not os.path.exists(sample_file):
@@ -105,14 +105,14 @@ def main():
         "📈 Generate Report"
     ])
     
-    # Tab 1: 自然語言插入
+    # Tab 1: insert new return
     with tab1:
         st.header("Insert New Return")
         
-        # 說明
-        with st.expander("ℹ️ How to use"):
+        # how
+        with st.expander("ℹ️ How to insert new return"):
             st.markdown("""
-            **Input Examples:**
+            **Input Rules & Examples:**
             - Return order 1234 laptop defective
             - Order 5678 phone wrong item shipped
             - Tablet damaged on arrival, order id: 9012
@@ -127,8 +127,8 @@ def main():
         
         with col1:
             user_input = st.text_input(
-                "Describe the return (natural language):",
-                placeholder="e.g., Return order 1234 laptop defective"
+                "Describe the return (natural-language):",
+                placeholder="e.g., Return order 1500 Camera Missing Accessories Brooklyn Center"
             )
         
         with col2:
@@ -138,7 +138,7 @@ def main():
                         result = safe_handle_request(st.session_state.controller, "insert", user_input)
                         
                         if isinstance(result, pd.DataFrame):
-                            st.success("✓ Record inserted successfully!")
+                            st.success("Record inserted successfully!")
                             st.write(f"Total records now: {len(result)}")
                         else:
                             error_msg = result.get('error', 'Unknown error') if result else 'System error'
@@ -152,14 +152,14 @@ def main():
             try:
                 all_returns = safe_handle_request(st.session_state.controller, "query")
                 if isinstance(all_returns, pd.DataFrame) and not all_returns.empty:
-                    # 只顯示最近5筆
+                    # show recent 5 records
                     st.dataframe(all_returns.head(), use_container_width=True)
                 else:
                     st.info("No records found")
             except Exception as e:
                 st.error(f"Error loading recent returns: {str(e)}")
     
-    # Tab 2: 查看記錄
+    # Tab 2: all records
     with tab2:
         st.header("All Return Records")
         
@@ -183,16 +183,16 @@ def main():
                             top_reason = all_returns['return_reason'].value_counts().iloc[0] if 'return_reason' in all_returns.columns else 'N/A'
                             st.metric("Top Reason", top_reason)
                     
-                    # 顯示資料表
+                    # show all records
                     st.dataframe(all_returns, use_container_width=True)
                     
-                    # 下載選項
+                    # download options
                     try:
                         csv = all_returns.to_csv(index=False)
                         st.download_button(
-                            label="📥 Download as CSV",
+                            label="Download as CSV",
                             data=csv,
-                            file_name=f"returns_{datetime.now().strftime('%Y%m%d')}.csv",
+                            file_name=f"return_records_{datetime.now().strftime('%Y%m%d')}.csv",
                             mime="text/csv"
                         )
                     except Exception as e:
@@ -204,7 +204,7 @@ def main():
         else:
             st.warning("Please load data first")
     
-    # Tab 3: 統計
+    # Tab 3: statistics
     with tab3:
         st.header("Returns Statistics")
         
@@ -213,7 +213,7 @@ def main():
                 all_returns = safe_handle_request(st.session_state.controller, "query")
                 
                 if isinstance(all_returns, pd.DataFrame) and not all_returns.empty:
-                    # 基本統計
+                    # basic statistics
                     col1, col2 = st.columns(2)
                     
                     with col1:
@@ -228,7 +228,7 @@ def main():
                             reason_counts = all_returns['return_reason'].value_counts()
                             st.bar_chart(reason_counts)
                     
-                    # 詳細統計表
+                    # detailed statistics
                     st.subheader("Detailed Statistics")
                     
                     if 'product' in all_returns.columns:
@@ -243,7 +243,7 @@ def main():
         else:
             st.warning("Please load data first")
     
-    # Tab 4: 生成報告
+    # Tab 4: generate report
     with tab4:
         st.header("Generate Excel Report")
         
@@ -282,7 +282,7 @@ def main():
                                 try:
                                     with open(report_name, 'rb') as f:
                                         st.download_button(
-                                            label="📥 Download Excel Report",
+                                            label="Download Excel Report",
                                             data=f,
                                             file_name=report_name,
                                             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -297,11 +297,11 @@ def main():
         else:
             st.warning("Please load data first")
     
-    # 頁尾
+    # footer
     st.divider()
     st.markdown("""
     ---
-    Returns & Warranty RAG System | 2-Agent Architecture (Retrieval + Report)
+    Returns & Warranty RAG System | 2-Agent (Retrieval + Report)
     """)
 
 if __name__ == "__main__":
