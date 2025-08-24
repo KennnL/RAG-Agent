@@ -60,6 +60,10 @@ class LoadDB:
             df.columns = [col.lower().replace(' ', '_').replace('-', '_') for col in df.columns]
             
             # step 3: write - replace existing data but preserve id column
+            # Ensure database connection exists
+            if not self.conn:
+                self.conn = sqlite3.connect(self.db_path)
+            
             # First, drop the table if it exists
             self.conn.execute("DROP TABLE IF EXISTS returns")
             self.conn.commit()

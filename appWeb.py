@@ -11,28 +11,19 @@ st.set_page_config(
 )
 
 # 初始化 session state
-if 'data_loaded' not in st.session_state:
-    st.session_state.data_loaded = False
-
-def create_controller():
-    """Create a new controller instance for each request"""
+if 'controller' not in st.session_state:
     try:
         from Controller import Controller
-        return Controller()
+        st.session_state.controller = Controller()
+        st.session_state.data_loaded = False
     except Exception as e:
-        st.error(f"Failed to create controller: {str(e)}")
-        return None
+        st.error(f"Failed to initialize system: {str(e)}")
+        st.stop()
 
 def safe_handle_request(action, data=None):
     """Safely handle controller requests with error handling"""
     try:
-        controller = create_controller()
-        if controller is None:
-            return None
-            
-        result = controller.handle_request(action, data)
-        controller.close()  # Always close the connection
-        return result
+        return st.session_state.controller.handle_request(action, data)
     except Exception as e:
         st.error(f"System error: {str(e)}")
         return None
