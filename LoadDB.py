@@ -2,20 +2,33 @@ import sqlite3
 import pandas as pd
 from datetime import datetime
 import re
+import threading
 
 class LoadDB:
     def __init__(self):
         self.db_path = "ReturnsData.db"
         self.conn = None
         self.table_created = False
+        self._local = threading.local()
+    
+    def _get_connection(self):
+        """Get a thread-safe database connection"""
+        if not hasattr(self._local, 'conn') or self._local.conn is None:
+            self._local.conn = sqlite3.connect(self.db_path)
+        return self._local.conn
+    
+    def _refresh_connection(self):
+        """Refresh the thread-local connection to see latest data"""
+        if hasattr(self._local, 'conn') and self._local.conn is not None:
+            self._local.conn.close()
+            self._local.conn = None
 
     def create_table(self, df):
         """
         Create a table in the database based on the DataFrame columns
         """
-        # connect to the database
-        if not self.conn:
-            self.conn = sqlite3.connect(self.db_path)
+        # Use thread-safe connection
+        conn = self._get_connection()
             
         if self.table_created:
             return
@@ -40,8 +53,8 @@ class LoadDB:
         create_table_sql = f"CREATE TABLE IF NOT EXISTS returns ({', '.join(columns)})"
 
         # execute create table sql
-        self.conn.execute(create_table_sql)
-        self.conn.commit()
+        conn.execute(create_table_sql)
+        conn.commit()
         
         self.table_created = True
         print("Database table created")
@@ -60,13 +73,12 @@ class LoadDB:
             df.columns = [col.lower().replace(' ', '_').replace('-', '_') for col in df.columns]
             
             # step 3: write - replace existing data but preserve id column
-            # Ensure database connection exists
-            if not self.conn:
-                self.conn = sqlite3.connect(self.db_path)
+            # Use thread-safe connection
+            conn = self._get_connection()
             
             # First, drop the table if it exists
-            self.conn.execute("DROP TABLE IF EXISTS returns")
-            self.conn.commit()
+            conn.execute("DROP TABLE IF EXISTS returns")
+            conn.commit()
             
             # Reset table_created flag
             self.table_created = False
@@ -75,11 +87,10 @@ class LoadDB:
             self.create_table(df)
             
             # Insert data
-            df.to_sql('returns', self.conn, if_exists='append', index=False)
+            df.to_sql('returns', conn, if_exists='append', index=False)
             
             # Refresh thread-local connections to see new data
-            if hasattr(self, '_refresh_connection'):
-                self._refresh_connection()
+            self._refresh_connection()
             
             print(f"Successfully wrote {len(df)} records to the database")
             
@@ -93,9 +104,15 @@ class LoadDB:
             return {"success": False, "error": str(e)}
             
     def close(self):
+        # Close legacy connection if exists
         if self.conn:
             self.conn.close()
             self.conn = None
+        
+        # Close thread-local connection if exists
+        if hasattr(self._local, 'conn') and self._local.conn is not None:
+            self._local.conn.close()
+            self._local.conn = None
 
 if __name__ == "__main__":
     loader = LoadDB()
